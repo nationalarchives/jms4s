@@ -128,7 +128,7 @@ val betterMonadicForV = "0.3.1"
 lazy val jms4s = project
   .in(file("."))
   .enablePlugins(NoPublishPlugin)
-  .aggregate(core, ibmMQ, activeMQArtemis, simpleQueueService, tests, examples, site)
+  .aggregate(core, ibmMQ, activeMQArtemis, simpleQueueService, examples, site)
   .settings(commonSettings, releaseSettings)
 
 lazy val core = project
