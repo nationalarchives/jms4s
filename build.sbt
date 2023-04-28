@@ -12,7 +12,7 @@ ThisBuild / mimaFailOnNoPrevious := false
 
 ThisBuild / scalaVersion := Scala213
 ThisBuild / crossScalaVersions := Seq(Scala213, Scala212)
-ThisBuild / organization := "dev.fpinbo"
+ThisBuild / organization := "uk.gov.nationalarchives.thirdparty.dev.fpinbo"
 ThisBuild / organizationName := "Functional Programming in Bologna"
 ThisBuild / publishFullName := "Alessandro Zoffoli"
 ThisBuild / publishGithubUser := "al333z"
