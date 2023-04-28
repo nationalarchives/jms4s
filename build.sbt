@@ -1,4 +1,5 @@
 import sbtghactions.JavaSpec.Distribution.Adopt
+import ReleaseTransformations._
 
 val Scala213 = "2.13.10"
 val Scala212 = "2.12.17"
@@ -18,6 +19,7 @@ ThisBuild / publishFullName := "Alessandro Zoffoli"
 ThisBuild / publishGithubUser := "al333z"
 ThisBuild / githubWorkflowJavaVersions := Seq(Java18, Java11)
 ThisBuild / baseVersion := "0.0.1"
+ThisBuild / versionScheme := Some("semver-spec")
 
 //CI definition
 val MicrositesCond = s"matrix.scala == '$Scala212'"
@@ -244,6 +246,8 @@ lazy val commonSettings = Seq(
 lazy val releaseSettings = {
   Seq(
     Test / publishArtifact := false,
+    releaseVersionBump := sbtrelease.Version.Bump.Major,
+    releasePublishArtifactsAction := PgpKeys.publishSigned.value,
     homepage := Some(url("https://github.com/fp-in-bo/jms4s")),
     startYear := Some(2020),
     licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
