@@ -37,8 +37,8 @@ trait ElasticMQBaseSpec extends Jms4sBaseSpec {
   override def jmsClientRes(implicit A: Async[IO]): Resource[IO, JmsClient[IO]] =
     simpleQueueService.makeJmsClient[IO](
       Config(
-        endpoint = Endpoint(Some(DirectAddress(HTTP, "localhost", Some(9324))), "elasticmq"),
-        credentials = Some(Credentials("x", "x")),
+        "elasticmq",
+        endpoint = Some(Endpoint(Some(DirectAddress(HTTP, "localhost", Some(9324))), Some(Credentials("x", "x")))),
         clientId = ClientId("jms-specs"),
         None
       )

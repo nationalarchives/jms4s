@@ -25,9 +25,9 @@ import cats.effect.{ Async, Resource, Sync }
 import cats.syntax.all._
 import com.amazon.sqs.javamessaging.{ ProviderConfiguration, SQSConnectionFactory }
 import software.amazon.awssdk.auth.credentials.{
-  AnonymousCredentialsProvider,
   AwsBasicCredentials,
   AwsCredentialsProvider,
+  DefaultCredentialsProvider,
   StaticCredentialsProvider
 }
 import software.amazon.awssdk.services.sqs.endpoints.{ SqsEndpointParams, SqsEndpointProvider }
@@ -46,8 +46,8 @@ import javax.jms.Session
 object simpleQueueService {
 
   case class Config(
-    endpoint: Endpoint,
-    credentials: Option[Credentials] = None,
+    awsRegion: String,
+    endpoint: Option[Endpoint],
     clientId: ClientId,
     numberOfMessagesToPrefetch: Option[Int]
   )
@@ -57,8 +57,8 @@ object simpleQueueService {
   case object HTTPS extends Protocol
   case class DirectAddress(protocol: Protocol, host: String, port: Option[Int])
 
-  case class Endpoint(directAddress: Option[DirectAddress], signingRegion: String) {
-    override def toString(): String = s"Region: $signingRegion${directAddress.map(" " + _.toString).getOrElse("")}"
+  case class Endpoint(directAddress: Option[DirectAddress], credentials: Option[Credentials] = None) {
+    override def toString(): String = s"Endpoint Direct Address: ${directAddress.map(_.toString).getOrElse("")}"
   }
   case class ClientId(value: String) extends AnyVal
 
@@ -70,21 +70,25 @@ object simpleQueueService {
                       val providerConfiguration = new ProviderConfiguration()
                       config.numberOfMessagesToPrefetch.map(providerConfiguration.setNumberOfMessagesToPrefetch(_))
 
-                      // TODO(AR) set the region from config.endpoint.signingRegion
-                      val endpointProvider = config.endpoint.directAddress.fold[SqsEndpointProvider](
-                        SqsEndpointProvider.defaultProvider()
-                      )(DirectAddressEndpointProvider.directAddress(_))
+                      val endpointProvider = config.endpoint
+                        .flatMap(_.directAddress)
+                        .fold[SqsEndpointProvider](
+                          SqsEndpointProvider.defaultProvider()
+                        )(DirectAddressEndpointProvider.directAddress(_))
 
                       val credentialsProvider =
-                        config.credentials.fold[AwsCredentialsProvider](AnonymousCredentialsProvider.create())(creds =>
-                          StaticCredentialsProvider.create(AwsBasicCredentials.create(creds.accessKey, creds.secretKey))
-                        )
+                        config.endpoint
+                          .flatMap(_.credentials)
+                          .fold[AwsCredentialsProvider](DefaultCredentialsProvider.create())(creds =>
+                            StaticCredentialsProvider
+                              .create(AwsBasicCredentials.create(creds.accessKey, creds.secretKey))
+                          )
 
                       val sqsClientBuilder = SqsClient
                         .builder()
+                        .region(Region.of(config.awsRegion))
                         .endpointProvider(endpointProvider)
                         .credentialsProvider(credentialsProvider)
-                        .region(Region.EU_WEST_2)
 
                       val factory = new SQSConnectionFactory(
                         providerConfiguration,
