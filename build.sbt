@@ -248,6 +248,15 @@ lazy val releaseSettings = {
     Test / publishArtifact := false,
     releaseVersionBump := sbtrelease.Version.Bump.Major,
     releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+    publishMavenStyle := true,
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots/")
+      else
+        Some("releases" at nexus + "service/local/staging/deploy/maven2/")
+    },
     homepage := Some(url("https://github.com/fp-in-bo/jms4s")),
     startYear := Some(2020),
     licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
